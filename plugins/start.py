@@ -15,7 +15,7 @@ from config import (
     PROTECT_CONTENT,
     START_MSG,
 )
-from database.mongo import add_served_user, get_served_users, full_userbase
+from database.mongo import add_served_user, get_served_users
 from pyrogram import filters
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked
@@ -174,7 +174,7 @@ async def get_users(client: Bot, message: Message):
     msg = await client.send_message(
         chat_id=message.chat.id, text="<code>Processing ...</code>"
     )
-    users = await full_userbase()
+    users = await get_served_users()
     await msg.edit(f"{len(users)} <b>Pengguna menggunakan bot ini</b>")
 
 
