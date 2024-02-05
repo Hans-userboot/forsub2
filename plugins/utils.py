@@ -10,7 +10,7 @@ from config import (
     API_HASH,
     APP_ID,
     CHANNEL_ID,
-    DB_URI,
+    MONGO_URL as DATABASE_URL,
     FORCE_MSG,
     FORCE_SUB_CHANNEL,
     FORCE_SUB_GROUP,
