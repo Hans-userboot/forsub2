@@ -15,7 +15,7 @@ from config import (
     PROTECT_CONTENT,
     START_MSG,
 )
-from database.mongo import add_served_user, get_served_users
+from database.sql import add_user, delete_user, full_userbase, query_msg
 from pyrogram import filters
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked
@@ -57,7 +57,7 @@ async def start_command(client: Bot, message: Message):
     )
 
     try:
-        await add_served_user(id)
+        await add_user(id, user_name)
     except:
         pass
     text = message.text
@@ -174,49 +174,56 @@ async def get_users(client: Bot, message: Message):
     msg = await client.send_message(
         chat_id=message.chat.id, text="<code>Processing ...</code>"
     )
-    users = await get_served_users()
+    users = await full_userbase()
     await msg.edit(f"{len(users)} <b>Pengguna menggunakan bot ini</b>")
 
 
 @Bot.on_message(filters.command("broadcast") & filters.user(ADMINS))
 async def send_text(client: Bot, message: Message):
     if message.reply_to_message:
-        anu = message.reply_to_message
-        x = message.reply_to_message.id
-        y = message.chat.id
-    else:
-        if len(message.command) < 2:
-            return await message.reply_text(
-                "**Usage**:\n/broadcast [MESSAGE] or [Reply to a Message]"
-            )
-        query = message.text.split(None, 1)[1]
+        query = await query_msg()
+        broadcast_msg = message.reply_to_message
+        total = 0
+        successful = 0
+        blocked = 0
+        deleted = 0
+        unsuccessful = 0
 
-    susr = 0
-    served_users = []
-    ayu = await message.reply("Broadcasting...")
-    susers = await get_served_users()
-    for user in susers:
-       served_users.append(int(user["user_id"]))
-    for i in served_users:
-        try:
-            await anu.copy(i
-            ) if message.reply_to_message else await client.send_message(
-                i, text=query
-            )
-            susr += 1
-        except FloodWait as e:
-            flood_time = int(e.x)
-            if flood_time > 200:
-                continue
-            await asyncio.sleep(flood_time)
-        except Exception:
-            pass
-    try:
-        await ayu.edit(
-            f"Broadcasted Message to {susr} Users."
-           )
-       except:
-           pass
+        pls_wait = await message.reply(
+            "<code>Broadcasting Message Tunggu Sebentar...</code>"
+        )
+        for row in query:
+            chat_id = int(row[0])
+            if chat_id not in ADMINS:
+                try:
+                    await broadcast_msg.copy(chat_id, protect_content=PROTECT_CONTENT)
+                    successful += 1
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    await broadcast_msg.copy(chat_id, protect_content=PROTECT_CONTENT)
+                    successful += 1
+                except UserIsBlocked:
+                    await delete_user(chat_id)
+                    blocked += 1
+                except InputUserDeactivated:
+                    await delete_user(chat_id)
+                    deleted += 1
+                except BaseException:
+                    unsuccessful += 1
+                total += 1
+        status = f"""<b><u>Berhasil Broadcast</u>
+Jumlah Pengguna: <code>{total}</code>
+Berhasil: <code>{successful}</code>
+Gagal: <code>{unsuccessful}</code>
+Pengguna diblokir: <code>{blocked}</code>
+Akun Terhapus: <code>{deleted}</code></b>"""
+        return await pls_wait.edit(status)
+    else:
+        msg = await message.reply(
+            "<code>Gunakan Perintah ini Harus Sambil Reply ke pesan telegram yang ingin di Broadcast.</code>"
+        )
+        await asyncio.sleep(8)
+        await msg.delete()
 
 
 @Bot.on_message(filters.command("ping"))
@@ -243,4 +250,5 @@ async def get_uptime(client, m: Message):
         "🤖 <b>Bot Status:</b>\n"
         f"• <b>Uptime:</b> <code>{uptime}</code>\n"
         f"• <b>Start Time:</b> <code>{START_TIME_ISO}</code>"
-    )
+)
+    
