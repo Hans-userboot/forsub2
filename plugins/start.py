@@ -15,7 +15,7 @@ from config import (
     PROTECT_CONTENT,
     START_MSG,
 )
-from database.sql import add_user, delete_user, full_userbase, query_msg
+from database.mongo import add_user, delete_user, full_userbase, query_msg
 from pyrogram import filters
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked
