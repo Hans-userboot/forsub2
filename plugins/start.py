@@ -15,7 +15,7 @@ from config import (
     PROTECT_CONTENT,
     START_MSG,
 )
-from database.mongo import add_served_user, get_served_users
+from database.mongo import add_served_user, get_served_users, full_userbase
 from pyrogram import filters
 from pyrogram.enums import ParseMode
 from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked
