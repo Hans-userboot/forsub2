@@ -6,7 +6,7 @@ import asyncio
 
 from pyrogram.errors import FloodWait
 
-from database.sql import query_msg
+from config import MONGO_URL import query_msg
 
 
 async def users_info(bot):
